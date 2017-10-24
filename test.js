@@ -5,14 +5,14 @@ import delay from 'delay'
 import auth from 'basic-auth'
 import pify from 'pify'
 import test from 'ava'
-import Analytics from '.'
+import Plainflow from '.'
 import {version} from './package'
 
 const noop = () => {}
 
 const context = {
   library: {
-    name: 'analytics-node',
+    name: 'plainflow-node',
     version
   }
 }
@@ -25,7 +25,7 @@ const createClient = options => {
     host: `http://localhost:${port}`
   }, options)
 
-  const client = new Analytics('key', options)
+  const client = new Plainflow('key', options)
   client.flush = pify(client.flush.bind(client))
   client.flushed = true
 
@@ -38,15 +38,15 @@ test.before.cb(t => {
     .post('/v1/batch', (req, res) => {
       const batch = req.body.batch
 
-      const { name: writeKey } = auth(req)
-      if (!writeKey) {
+      const { name: secretKey } = auth(req)
+      if (!secretKey) {
         return res.status(400).json({
           error: { message: 'missing write key' }
         })
       }
 
       const ua = req.headers['user-agent']
-      if (ua !== `analytics-node ${version}`) {
+      if (ua !== `plainflow-node ${version}`) {
         return res.status(400).json({
           error: { message: 'invalid user-agent' }
         })
@@ -68,11 +68,11 @@ test.before.cb(t => {
 })
 
 test('expose a constructor', t => {
-  t.is(typeof Analytics, 'function')
+  t.is(typeof Plainflow, 'function')
 })
 
 test('require a write key', t => {
-  t.throws(() => new Analytics(), 'You must pass your Segment project\'s write key.')
+  t.throws(() => new Plainflow(), 'You must pass your Plainflow secret key.')
 })
 
 test('create a queue', t => {
@@ -82,22 +82,22 @@ test('create a queue', t => {
 })
 
 test('default options', t => {
-  const client = new Analytics('key')
+  const client = new Plainflow('key')
 
-  t.is(client.writeKey, 'key')
-  t.is(client.host, 'https://api.segment.io')
+  t.is(client.secretKey, 'key')
+  t.is(client.host, 'https://pipe.plainflow.net')
   t.is(client.flushAt, 20)
   t.is(client.flushInterval, 10000)
 })
 
 test('remove trailing slashes from `host`', t => {
-  const client = new Analytics('key', { host: 'http://google.com///' })
+  const client = new Plainflow('key', { host: 'http://google.com///' })
 
   t.is(client.host, 'http://google.com')
 })
 
 test('overwrite defaults with options', t => {
-  const client = new Analytics('key', {
+  const client = new Plainflow('key', {
     host: 'a',
     flushAt: 1,
     flushInterval: 2

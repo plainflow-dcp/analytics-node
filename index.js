@@ -12,26 +12,26 @@ const version = require('./package.json').version
 const setImmediate = global.setImmediate || process.nextTick.bind(process)
 const noop = () => {}
 
-class Analytics {
+class Plainflow {
   /**
-   * Initialize a new `Analytics` with your Segment project's `writeKey` and an
+   * Initialize a new `Plainflow` with your Plainflow `secretKey` and an
    * optional dictionary of `options`.
    *
-   * @param {String} writeKey
+   * @param {String} secretKey
    * @param {Object} [options] (optional)
    *   @property {Number} flushAt (default: 20)
    *   @property {Number} flushInterval (default: 10000)
-   *   @property {String} host (default: 'https://api.segment.io')
+   *   @property {String} host (default: 'https://pipe.plainflow.net')
    */
 
-  constructor (writeKey, options) {
+  constructor (secretKey, options) {
     options = options || {}
 
-    assert(writeKey, 'You must pass your Segment project\'s write key.')
+    assert(secretKey, 'You must pass your Plainflow secret key.')
 
     this.queue = []
-    this.writeKey = writeKey
-    this.host = removeSlash(options.host || 'https://api.segment.io')
+    this.secretKey = secretKey
+    this.host = removeSlash(options.host || 'https://pipe.plainflow.net')
     this.timeout = options.timeout || false
     this.flushAt = Math.max(options.flushAt, 1) || 20
     this.flushInterval = options.flushInterval || 10000
@@ -45,7 +45,7 @@ class Analytics {
    *
    * @param {Object} message
    * @param {Function} [callback] (optional)
-   * @return {Analytics}
+   * @return {Plainflow}
    */
 
   identify (message, callback) {
@@ -59,7 +59,7 @@ class Analytics {
    *
    * @param {Object} message
    * @param {Function} [callback] (optional)
-   * @return {Analytics}
+   * @return {Plainflow}
    */
 
   group (message, callback) {
@@ -73,7 +73,7 @@ class Analytics {
    *
    * @param {Object} message
    * @param {Function} [callback] (optional)
-   * @return {Analytics}
+   * @return {Plainflow}
    */
 
   track (message, callback) {
@@ -87,7 +87,7 @@ class Analytics {
    *
    * @param {Object} message
    * @param {Function} [callback] (optional)
-   * @return {Analytics}
+   * @return {Plainflow}
    */
 
   page (message, callback) {
@@ -101,7 +101,7 @@ class Analytics {
    *
    * @param {Object} message
    * @param {Function} fn (optional)
-   * @return {Analytics}
+   * @return {Plainflow}
    */
 
   screen (message, callback) {
@@ -115,7 +115,7 @@ class Analytics {
    *
    * @param {Object} message
    * @param {Function} [callback] (optional)
-   * @return {Analytics}
+   * @return {Plainflow}
    */
 
   alias (message, callback) {
@@ -130,7 +130,7 @@ class Analytics {
    *
    * @param {String} type
    * @param {Object} message
-   * @param {Functino} [callback] (optional)
+   * @param {Function} [callback] (optional)
    * @api private
    */
 
@@ -141,7 +141,7 @@ class Analytics {
     message.type = type
     message.context = Object.assign({
       library: {
-        name: 'analytics-node',
+        name: 'plainflow-node',
         version
       }
     }, message.context)
@@ -179,7 +179,7 @@ class Analytics {
    * Flush the current queue
    *
    * @param {Function} [callback] (optional)
-   * @return {Analytics}
+   * @return {Plainflow}
    */
 
   flush (callback) {
@@ -213,11 +213,11 @@ class Analytics {
       method: 'POST',
       url: `${this.host}/v1/batch`,
       auth: {
-        username: this.writeKey
+        username: this.secretKey
       },
       data,
       headers: {
-        'user-agent': `analytics-node ${version}`
+        'user-agent': `plainflow-node ${version}`
       }
     }
 
@@ -238,4 +238,4 @@ class Analytics {
   }
 }
 
-module.exports = Analytics
+module.exports = Plainflow

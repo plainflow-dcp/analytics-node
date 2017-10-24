@@ -3,15 +3,15 @@
 
 const assert = require('assert')
 const program = require('commander')
-const Analytics = require('.')
+const Plainflow = require('.')
 const pkg = require('./package')
 
 const run = (method, options) => {
-  const writeKey = process.env.SEGMENT_WRITE_KEY || program.writeKey
-  assert(writeKey, 'You need to define your write key via the $SEGMENT_WRITE_KEY environment variable or the --write-key flag.')
+  const secretKey = process.env.PLAINFLOW_SECRET_KEY || program.secretKey
+  assert(secretKey, 'You need to define your write key via the $PLAINFLOW_SECRET_KEY environment variable or the --secret-key flag.')
 
-  const analytics = new Analytics(writeKey, { flushAt: 1 })
-  analytics[method](options, err => {
+  const plainflow = new Plainflow(secretKey, { flushAt: 1 })
+  plainflow[method](options, err => {
     if (err) {
       console.error(err.stack)
       process.exit(1)
@@ -24,7 +24,7 @@ const toObject = str => JSON.parse(str)
 
 program
   .version(pkg.version)
-  .option('-w, --write-key <key>', 'the segment write key to use')
+  .option('-w, --secret-key <key>', 'the plainflow secret key to use')
 
 program
   .command('track <event>')
